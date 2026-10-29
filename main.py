@@ -49,7 +49,15 @@ class SearchResult:
 
 
 def tokenize(text: str) -> list[str]:
-    return TOKEN_PATTERN.findall(text.casefold())
+    tokens = TOKEN_PATTERN.findall(text.casefold())
+    normalized: list[str] = []
+    for token in tokens:
+        if token.endswith("ies") and len(token) > 4:
+            token = token[:-3] + "y"
+        elif token.endswith("s") and not token.endswith("ss") and len(token) > 3:
+            token = token[:-1]
+        normalized.append(token)
+    return normalized
 
 
 def split_text(text: str, size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
