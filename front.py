@@ -428,9 +428,11 @@ class FrontendHandler(BaseHTTPRequestHandler):
         }
 
     def _ingest(self, payload: dict[str, Any]) -> dict[str, int]:
-        path_text = payload.get("path", "knowledge_base")
-        if not isinstance(path_text, str) or not path_text.strip():
-            path_text = "knowledge_base"
+        path_text = (
+            _required_text(payload, "path")
+            if "path" in payload
+            else "knowledge_base"
+        )
         path = Path(path_text.strip()).expanduser()
         with closing(rag.connect_database()) as connection:
             with connection:
