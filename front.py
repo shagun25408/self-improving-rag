@@ -31,125 +31,248 @@ PAGE = """<!doctype html>
     :root {
       color-scheme: dark;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #10151d;
-      color: #e7edf5;
+      background: #081018;
+      color: #eaf3ff;
       font-synthesis: none;
       text-rendering: optimizeLegibility;
-      --panel: #171f2a;
-      --border: #2a3747;
-      --muted: #9aabba;
-      --accent: #73d6b1;
-      --danger: #ff9a9a;
+      --bg: #081018;
+      --bg-elevated: rgba(16, 24, 34, 0.88);
+      --panel: rgba(14, 22, 31, 0.9);
+      --panel-strong: rgba(19, 28, 38, 0.96);
+      --border: rgba(145, 172, 201, 0.18);
+      --muted: #9bb0c8;
+      --accent: #7ae7c3;
+      --accent-strong: #4fd7ad;
+      --accent-soft: rgba(122, 231, 195, 0.14);
+      --danger: #ff9f9f;
+      --shadow: 0 24px 60px rgba(2, 6, 10, 0.55);
     }
     * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(64, 160, 130, 0.18), transparent 24%),
+        radial-gradient(circle at top right, rgba(108, 134, 255, 0.14), transparent 22%),
+        var(--bg);
+      color: #eaf3ff;
+    }
     header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 1rem;
-      padding: 1.25rem max(1.25rem, calc((100vw - 1180px) / 2));
+      padding: 1rem max(1.25rem, calc((100vw - 1180px) / 2));
       border-bottom: 1px solid var(--border);
-      background: #121923;
+      background: rgba(8, 16, 24, 0.82);
+      backdrop-filter: blur(14px);
     }
-    .brand { display: flex; align-items: center; gap: .75rem; }
+    .brand { display: flex; align-items: center; gap: .8rem; }
     .mark {
       display: grid;
-      width: 2.5rem;
-      height: 2.5rem;
+      width: 2.7rem;
+      height: 2.7rem;
       place-items: center;
-      border-radius: .8rem;
-      color: #10251e;
-      background: var(--accent);
+      border-radius: .9rem;
+      color: #06251d;
+      background: linear-gradient(135deg, var(--accent), #b1ffd8);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 12px 28px rgba(122, 231, 195, 0.35);
       font-size: 1.2rem;
       font-weight: 800;
     }
     h1 { margin: 0; font-size: 1rem; letter-spacing: -.02em; }
-    .subhead { margin: .2rem 0 0; color: var(--muted); font-size: .82rem; }
+    .subhead { margin: .18rem 0 0; color: var(--muted); font-size: .8rem; }
     .local-pill {
-      padding: .45rem .7rem;
-      border: 1px solid #315847;
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .5rem .8rem;
+      border: 1px solid rgba(122, 231, 195, 0.2);
       border-radius: 999px;
+      background: rgba(122, 231, 195, 0.06);
       color: var(--accent);
-      font-size: .78rem;
+      font-size: .76rem;
       white-space: nowrap;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .local-pill::before {
+      content: "";
+      display: inline-block;
+      width: .52rem;
+      height: .52rem;
+      border-radius: 50%;
+      background: #6ef0bf;
+      box-shadow: 0 0 12px rgba(110, 240, 191, 0.9);
     }
     main { width: min(1180px, 100%); margin: 0 auto; padding: 2rem 1.25rem 3rem; }
-    .intro { margin-bottom: 1.5rem; }
-    .intro h2 { margin: 0 0 .45rem; font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: -.04em; }
-    .intro p { max-width: 680px; margin: 0; color: var(--muted); line-height: 1.6; }
-    .stats { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1rem; }
-    .stat {
-      padding: .55rem .8rem;
-      border: 1px solid var(--border);
-      border-radius: .7rem;
-      color: var(--muted);
-      background: #141c26;
-      font-size: .82rem;
+    .intro { margin-bottom: 1.2rem; }
+    .eyebrow {
+      display: inline-flex;
+      padding: .36rem .7rem;
+      border: 1px solid rgba(162, 181, 204, 0.2);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.02);
+      color: #cfe0f2;
+      letter-spacing: .12em;
+      font-size: .68rem;
+      text-transform: uppercase;
     }
-    .stat strong { color: #e7edf5; font-variant-numeric: tabular-nums; }
+    .intro h2 {
+      margin: .8rem 0 .55rem;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.02;
+      letter-spacing: -.06em;
+    }
+    .intro p {
+      max-width: 740px;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+    .stats { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.2rem; }
+    .stat {
+      min-width: 160px;
+      padding: .8rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: .9rem;
+      background: rgba(11, 17, 24, 0.7);
+      color: var(--muted);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .stat strong {
+      display: block;
+      margin-bottom: .18rem;
+      color: #edf4ff;
+      font-size: 1.1rem;
+      font-variant-numeric: tabular-nums;
+    }
     .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .8fr); gap: 1rem; align-items: start; }
     .panel {
       border: 1px solid var(--border);
-      border-radius: 1rem;
-      background: var(--panel);
-      box-shadow: 0 12px 36px #05080c2b;
+      border-radius: 1.2rem;
+      background: linear-gradient(180deg, rgba(18, 28, 36, 0.95), rgba(13, 19, 26, 0.9));
+      box-shadow: var(--shadow);
     }
     .panel-head { padding: 1.1rem 1.2rem .8rem; }
     .panel-head h3 { margin: 0; font-size: 1rem; }
     .panel-head p { margin: .35rem 0 0; color: var(--muted); font-size: .82rem; line-height: 1.5; }
-    .chat { display: flex; min-height: 540px; flex-direction: column; }
+    .chat { display: flex; min-height: 560px; flex-direction: column; }
     #conversation { display: flex; flex: 1; flex-direction: column; gap: 1rem; padding: .8rem 1.2rem 1rem; }
-    .message { max-width: 94%; padding: .85rem 1rem; border-radius: .9rem; line-height: 1.6; overflow-wrap: anywhere; white-space: pre-wrap; }
-    .assistant { align-self: flex-start; border: 1px solid var(--border); background: #111923; }
-    .user { align-self: flex-end; color: #10251e; background: var(--accent); }
-    .sources { margin: -.35rem 1.2rem .8rem; }
-    details { border-top: 1px solid var(--border); color: var(--muted); font-size: .82rem; }
-    summary { padding: .7rem 0; cursor: pointer; color: #b6c4d2; }
-    .source-text { margin: 0 0 .8rem; line-height: 1.5; white-space: pre-wrap; }
-    form { display: flex; flex-direction: column; gap: .65rem; }
+    .message {
+      max-width: min(88%, 720px);
+      padding: .95rem 1rem;
+      border: 1px solid transparent;
+      border-radius: 1rem;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+    .assistant {
+      align-self: flex-start;
+      border-color: var(--border);
+      background: rgba(13, 20, 27, 0.92);
+      color: #edf4ff;
+    }
+    .user {
+      align-self: flex-end;
+      color: #07281f;
+      background: linear-gradient(135deg, var(--accent), #d1ffe9);
+      box-shadow: 0 12px 24px rgba(122, 231, 195, 0.18);
+    }
+    .sources {
+      margin: -.2rem 1.2rem .8rem;
+      padding-top: .4rem;
+    }
+    details {
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: .82rem;
+    }
+    summary {
+      padding: .7rem .1rem;
+      cursor: pointer;
+      color: #d5e2f1;
+      user-select: none;
+    }
+    .source-text {
+      margin: 0 0 .9rem;
+      color: #dfeaf7;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+    form { display: flex; flex-direction: column; gap: .7rem; }
     .ask-form { padding: 1rem 1.2rem 1.2rem; border-top: 1px solid var(--border); }
-    .ask-row { display: flex; gap: .6rem; }
+    .ask-row { display: flex; gap: .7rem; }
     input, textarea {
       width: 100%;
       border: 1px solid var(--border);
-      border-radius: .7rem;
+      border-radius: .8rem;
       outline: none;
-      padding: .75rem .85rem;
-      color: #e7edf5;
-      background: #101720;
+      padding: .8rem .9rem;
+      color: #ebf2ff;
+      background: rgba(10, 17, 23, 0.75);
       font: inherit;
+      transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
     }
     textarea { min-height: 96px; resize: vertical; }
-    input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #73d6b122; }
+    input:focus, textarea:focus {
+      border-color: rgba(122, 231, 195, 0.8);
+      box-shadow: 0 0 0 3px rgba(122, 231, 195, 0.12);
+      transform: translateY(-1px);
+    }
     button {
-      min-height: 2.65rem;
-      padding: .65rem .9rem;
+      min-height: 2.9rem;
+      padding: .7rem 1rem;
       border: 0;
-      border-radius: .7rem;
-      color: #10251e;
-      background: var(--accent);
+      border-radius: .8rem;
+      color: #06261f;
+      background: linear-gradient(135deg, var(--accent), #baf6d9);
       font: inherit;
       font-weight: 700;
+      letter-spacing: -.01em;
       cursor: pointer;
+      transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
+      box-shadow: 0 10px 20px rgba(122, 231, 195, 0.2);
     }
-    button:hover { filter: brightness(1.06); }
-    button:disabled { cursor: wait; opacity: .6; }
-    .ask-row button { min-width: 5rem; }
+    button:hover { transform: translateY(-1px); filter: brightness(1.04); }
+    button:disabled { cursor: wait; opacity: .62; transform: none; }
+    .ask-row button { min-width: 5.5rem; }
     .side { display: flex; flex-direction: column; gap: 1rem; }
     .side form { padding: 0 1.2rem 1.2rem; }
-    .label { color: #c1ccd8; font-size: .82rem; font-weight: 600; }
-    .helper { margin: -.25rem 0 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
-    .notice { min-height: 1.3rem; margin: 0 1.2rem .8rem; color: var(--muted); font-size: .82rem; }
+    .label {
+      display: inline-block;
+      margin-bottom: .35rem;
+      color: #dfeaf7;
+      font-size: .78rem;
+      font-weight: 700;
+    }
+    .helper { margin: -.15rem 0 0; color: var(--muted); font-size: .77rem; line-height: 1.6; }
+    .notice {
+      min-height: 1.3rem;
+      margin: 0 1.2rem .8rem;
+      color: var(--muted);
+      font-size: .82rem;
+    }
     .notice.error { color: var(--danger); }
-    footer { padding-top: 1.5rem; color: #8293a5; font-size: .78rem; text-align: center; }
+    footer {
+      padding-top: 1.6rem;
+      color: #8398ad;
+      font-size: .78rem;
+      text-align: center;
+    }
     @media (max-width: 760px) {
       header { padding: 1rem 1.1rem; }
       main { padding: 1.5rem 1rem 2rem; }
       .layout { grid-template-columns: 1fr; }
       .chat { min-height: 460px; }
-      .local-pill { font-size: 0; }
-      .local-pill::after { content: "LOCAL"; font-size: .75rem; }
+      .ask-row { flex-direction: column; }
+      .local-pill { font-size: .72rem; }
     }
   </style>
 </head>
@@ -157,17 +280,19 @@ PAGE = """<!doctype html>
   <header>
     <div class="brand">
       <div class="mark" aria-hidden="true">R</div>
-      <div><h1>Local RAG Assistant</h1><p class="subhead">Your documents, searchable on this machine</p></div>
+      <div><h1>Self-Improving RAG</h1><p class="subhead">Private knowledge assistant on this machine</p></div>
     </div>
-    <span class="local-pill">● &nbsp;Private local interface</span>
+    <span class="local-pill">Local interface</span>
   </header>
   <main>
     <section class="intro">
-      <h2>Ask your knowledge base.</h2>
+      <div class="eyebrow">Local AI workspace</div>
+      <h2>Ask your docs, then improve them.</h2>
       <p>Index Markdown or text files, get answers grounded in retrieved passages, and save corrections to improve future searches.</p>
       <div class="stats" aria-live="polite">
-        <div class="stat"><strong id="chunk-count">—</strong> indexed chunks</div>
-        <div class="stat"><strong id="correction-count">—</strong> saved corrections</div>
+        <div class="stat"><strong id="chunk-count">—</strong>indexed chunks</div>
+        <div class="stat"><strong id="correction-count">—</strong>saved corrections</div>
+        <div class="stat"><strong>Ready</strong>knowledge base online</div>
       </div>
     </section>
     <div class="layout">
