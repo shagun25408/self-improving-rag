@@ -7,6 +7,7 @@ import math
 import os
 import re
 import sqlite3
+import functools
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -147,7 +148,7 @@ def search_arxiv(query: str, limit: int = 10) -> list[dict[str, str]]:
     papers: list[dict[str, str]] = []
     for entry in root.findall("atom:entry", ARXIV_NS):
         raw_id = (entry.findtext("atom:id", default="", namespaces=ARXIV_NS)).rstrip("/")
-        arxiv_id = raw_id.rsplit("/", 1)[-1].split("v", 1)[0]
+        arxiv_id = re.sub(r"v\d+$", "", raw_id.rsplit("/", 1)[-1])
         if not arxiv_id:
             continue
         pdf_url = next(
@@ -193,6 +194,7 @@ def _vector_collection() -> Any:
     )
 
 
+@functools.lru_cache(maxsize=1)
 def _embedder() -> Any:
     try:
         from sentence_transformers import SentenceTransformer
@@ -435,7 +437,7 @@ def validate_citations(
     invalid = [citation for citation in found if citation not in allowed_chunk_ids]
     cleaned = answer
     for citation in invalid:
-        cleaned = cleaned.replace(f"[{citation}]", "")
+        cleaned = re.sub(r"[ \t]*" + re.escape(f"[{citation}]"), "", cleaned)
     cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
     cleaned = re.sub(r" *\n *", "\n", cleaned).strip()
     valid = list(dict.fromkeys(citation for citation in found if citation in allowed_chunk_ids))
@@ -483,6 +485,8 @@ def judge_answer(
     citation_verdicts = verdicts.get("citations")
     if not isinstance(chunk_verdicts, list) or not isinstance(citation_verdicts, list):
         raise RuntimeError("Judge response must contain chunks and citations arrays.")
+    if len(chunk_verdicts) != len(expected_ids) or len(citation_verdicts) != len(expected_citations):
+        raise RuntimeError("Judge response must contain exactly one verdict per item.")
     normalized_chunks: dict[str, bool] = {}
     for verdict in chunk_verdicts:
         if (
@@ -552,6 +556,22 @@ def compute_metrics(
 def answer_question(question: str, connection: sqlite3.Connection, limit: int = 5) -> dict[str, Any]:
     ranked_candidates = retrieve(question, connection, limit=min(limit * 4, 20))
     selected = ranked_candidates[:limit]
+    if not selected:
+        return {
+            "answer": "I couldn't find supporting passages in the indexed arXiv papers.",
+            "sources": [],
+            "citations": [],
+            "metrics": {
+                "chunk_precision": 0.0,
+                "chunk_recall": 0.0,
+                "chunk_f1": 0.0,
+                "citation_precision": 0.0,
+                "citation_recall": 0.0,
+                "citation_f1": 0.0,
+                "invalid_citations": 0,
+            },
+            "weights": get_weights(connection),
+        }
     answer = generate_answer(question, selected)
     allowed_ids = {item.chunk.id for item in selected}
     clean_answer, citations, invalid_count = validate_citations(answer, allowed_ids)

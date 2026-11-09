@@ -6,6 +6,7 @@ import json
 import sqlite3
 import tempfile
 from contextlib import closing
+from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean
 from typing import Any
@@ -57,7 +58,7 @@ def _judge_one(question: str, connection: sqlite3.Connection, adapt: bool) -> di
         connection.executemany(
             "INSERT INTO judgments (question, chunk_id, relevant, created_at) VALUES (?, ?, ?, ?)",
             [
-                (question, verdict["chunk_id"], int(verdict["relevant"]), rag.datetime.now(rag.timezone.utc).isoformat())
+                (question, verdict["chunk_id"], int(verdict["relevant"]), datetime.now(timezone.utc).isoformat())
                 for verdict in verdicts["chunks"]
             ],
         )
