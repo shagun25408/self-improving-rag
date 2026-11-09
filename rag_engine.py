@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import functools
 import json
 import math
 import os
 import re
 import sqlite3
-import functools
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -27,7 +27,7 @@ ARXIV_NS = {"atom": "http://www.w3.org/2005/Atom"}
 CHUNK_SIZE = 1100
 CHUNK_OVERLAP = 160
 FEATURES = ("semantic", "recency", "feedback")
-CITATION_RE = re.compile(r"\[(arxiv:\d{4}\.\d{4,5}:\d+)\]")
+CITATION_RE = re.compile(r"\[(arxiv:[^\]\s]+)\]", re.IGNORECASE)
 DEFAULT_WEIGHTS = {"semantic": 0.65, "recency": 0.2, "feedback": 0.15}
 
 
@@ -487,6 +487,8 @@ def judge_answer(
         verdicts = json.loads(raw)
     except json.JSONDecodeError as error:
         raise RuntimeError("Judge returned invalid JSON.") from error
+    if not isinstance(verdicts, dict) or set(verdicts) != {"chunks", "citations"}:
+        raise RuntimeError("Judge response must contain only chunks and citations verdicts.")
     expected_ids = {item.chunk.id for item in chunks}
     expected_citations = set(citations)
     chunk_verdicts = verdicts.get("chunks")
@@ -499,6 +501,7 @@ def judge_answer(
     for verdict in chunk_verdicts:
         if (
             isinstance(verdict, dict)
+            and set(verdict) == {"chunk_id", "relevant"}
             and verdict.get("chunk_id") in expected_ids
             and type(verdict.get("relevant")) is bool
         ):
@@ -507,6 +510,7 @@ def judge_answer(
     for verdict in citation_verdicts:
         if (
             isinstance(verdict, dict)
+            and set(verdict) == {"marker", "supported"}
             and verdict.get("marker") in expected_citations
             and type(verdict.get("supported")) is bool
         ):
@@ -542,7 +546,11 @@ def compute_metrics(
     }
     valid_count = len(cited_markers)
     supported_count = sum(citation_support.get(marker, False) for marker in cited_markers)
-    citation_precision = supported_count / valid_count if valid_count else 0.0
+    citation_precision = (
+        supported_count / (valid_count + invalid_citations)
+        if valid_count + invalid_citations
+        else 0.0
+    )
     citation_recall = supported_count / len(relevant_ids) if relevant_ids else 0.0
     citation_recall = min(citation_recall, 1.0)
     citation_f1 = (

@@ -58,7 +58,7 @@ class RagEngineTests(unittest.TestCase):
 
         self.assertEqual(metrics["chunk_precision"], 0.5)
         self.assertEqual(metrics["chunk_recall"], 1.0)
-        self.assertEqual(metrics["citation_precision"], 1.0)
+        self.assertEqual(metrics["citation_precision"], 0.5)
         self.assertEqual(metrics["citation_recall"], 1.0)
         self.assertEqual(metrics["invalid_citations"], 1)
 
