@@ -225,6 +225,9 @@ def ingest_arxiv(query: str, limit: int = 10, connection: sqlite3.Connection | N
                 continue
             ids = [f"arxiv:{paper['arxiv_id']}:{index}" for index in range(1, len(chunks) + 1)]
             embeddings = embedder.encode(chunks, normalize_embeddings=True).tolist()
+            old_ids = collection.get(where={"arxiv_id": paper["arxiv_id"]})["ids"]
+            if old_ids:
+                collection.delete(ids=old_ids)
             collection.upsert(
                 ids=ids,
                 documents=chunks,
@@ -313,6 +316,11 @@ def retrieve(question: str, connection: sqlite3.Connection, limit: int = 5) -> l
     weights = get_weights(connection)
     ranked: list[RankedChunk] = []
     for chunk_id, distance, content, meta in zip(ids, distances, docs, metadata):
+        stored = connection.execute(
+            "SELECT 1 FROM chunks WHERE id = ?", (chunk_id,)
+        ).fetchone()
+        if stored is None:
+            continue
         row = connection.execute(
             "SELECT AVG(relevant) AS signal FROM judgments WHERE chunk_id = ?",
             (chunk_id,),
