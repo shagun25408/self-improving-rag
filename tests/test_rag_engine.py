@@ -3,7 +3,9 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+import evaluation
 import rag_engine as rag
 
 
@@ -80,6 +82,27 @@ class RagEngineTests(unittest.TestCase):
         self.assertGreater(after["semantic"], before["semantic"])
         self.assertAlmostEqual(sum(after.values()), 1.0)
         self.assertEqual(after, rag.get_weights(self.connection))
+
+    def test_judge_rejects_model_generated_metrics(self) -> None:
+        chunk = rag.RankedChunk(
+            rag.Chunk("arxiv:2401.12345:1", "2401.12345", "Paper", "2024-01-01", "text"),
+            0.9,
+            {"semantic": 0.9, "recency": 0.8, "feedback": 0.5},
+        )
+        response = (
+            '{"chunks":[{"chunk_id":"arxiv:2401.12345:1","relevant":true}],'
+            '"citations":[],"metrics":{"precision":1}}'
+        )
+
+        with patch.object(rag, "_api_completion", return_value=response):
+            with self.assertRaisesRegex(RuntimeError, "only chunks and citations"):
+                rag.judge_answer("question", "answer", [chunk], [])
+
+    def test_evaluation_requires_exact_benchmark_size(self) -> None:
+        with self.assertRaisesRegex(ValueError, "exactly 24 training questions"):
+            evaluation._validate_dataset(
+                {"training_questions": ["one"], "held_out_paraphrases": ["two"]}
+            )
 
 
 if __name__ == "__main__":

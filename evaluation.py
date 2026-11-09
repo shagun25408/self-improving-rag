@@ -53,15 +53,15 @@ def _judge_one(question: str, connection: sqlite3.Connection, adapt: bool) -> di
     )
     verdicts = rag.judge_answer(question, clean_answer, candidates, citations)
     metrics = rag.compute_metrics(verdicts, candidates, citations, invalid)
-    with connection:
-        connection.executemany(
-            "INSERT INTO judgments (question, chunk_id, relevant, created_at) VALUES (?, ?, ?, ?)",
-            [
-                (question, verdict["chunk_id"], int(verdict["relevant"]), datetime.now(timezone.utc).isoformat())
-                for verdict in verdicts["chunks"]
-            ],
-        )
     if adapt:
+        with connection:
+            connection.executemany(
+                "INSERT INTO judgments (question, chunk_id, relevant, created_at) VALUES (?, ?, ?, ?)",
+                [
+                    (question, verdict["chunk_id"], int(verdict["relevant"]), datetime.now(timezone.utc).isoformat())
+                    for verdict in verdicts["chunks"]
+                ],
+            )
         rag.update_weights(
             [
                 (item, next(v["relevant"] for v in verdicts["chunks"] if v["chunk_id"] == item.chunk.id))
