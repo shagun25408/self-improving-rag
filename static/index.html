@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0909">
+  <title>Self-Improving RAG — Intelligence That Learns</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #0b0909;
+      --panel: #151010;
+      --wine: #260b0d;
+      --crimson: #8f171d;
+      --red: #c52b32;
+      --champagne: #c9c2a5;
+      --secondary: #a39b86;
+      --muted: #77736b;
+      --rule: rgba(201, 194, 165, .16);
+      --serif: "DM Serif Display", "Iowan Old Style", "Baskerville", Georgia, serif;
+      --sans: Manrope, Inter, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        radial-gradient(ellipse at 75% 4%, rgba(108, 16, 25, .24), transparent 34rem),
+        radial-gradient(ellipse at 12% 42%, rgba(65, 16, 19, .13), transparent 38rem),
+        var(--ink);
+      color: var(--champagne);
+      font: 14px/1.6 var(--sans);
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    a { color: var(--champagne); }
+    ::selection { color: var(--ink); background: var(--champagne); }
+
+    .frame { width: min(1440px, 100%); margin: 0 auto; padding: 0 7.1%; }
+    .masthead {
+      height: 78px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--rule);
+      color: var(--secondary);
+      font-size: 10px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+    .wordmark { color: var(--champagne); font-weight: 700; }
+    .mast-meta { display: flex; gap: 30px; align-items: center; }
+    .live-mark { display: inline-flex; gap: 9px; align-items: center; }
+    .live-mark::before {
+      content: "";
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 12px rgba(197,43,50,.7);
+    }
+
+    .hero {
+      min-height: 490px;
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(280px, .95fr);
+      align-items: center;
+      border-bottom: 1px solid var(--rule);
+      isolation: isolate;
+    }
+    .hero-copy { position: relative; z-index: 1; padding: 50px 0 64px; }
+    .eyebrow, .section-kicker {
+      color: var(--secondary);
+      font-size: 10px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      max-width: 670px;
+      margin: 22px 0 20px;
+      color: var(--champagne);
+      font: 400 clamp(4rem, 8.5vw, 8.2rem)/.87 var(--serif);
+      letter-spacing: -.055em;
+    }
+    .hero h1 span { color: #e0d8bd; font-style: italic; }
+    .hero-description {
+      max-width: 440px;
+      color: var(--secondary);
+      font-size: 13px;
+      line-height: 1.9;
+    }
+    .hero-stamp {
+      position: absolute;
+      left: 0;
+      bottom: 30px;
+      display: flex;
+      gap: 18px;
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+    .hero-art {
+      position: absolute;
+      z-index: 0;
+      width: min(54%, 690px);
+      height: 112%;
+      right: -2%;
+      top: -8%;
+      overflow: visible;
+      opacity: .9;
+      animation: flower-arrive 1.2s ease-out both;
+      pointer-events: none;
+    }
+    .hero-art .petal { transform-origin: 50% 50%; }
+    .hero-art .halo { animation: breathe 8s ease-in-out infinite alternate; transform-origin: 50% 50%; }
+    @keyframes flower-arrive { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: .9; transform: none; } }
+    @keyframes breathe { to { transform: scale(1.025) rotate(2deg); opacity: .72; } }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 38px 0 42px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .stat {
+      min-height: 112px;
+      padding: 0 24px;
+      border-left: 1px solid var(--rule);
+      transition: transform .25s ease, border-color .25s ease;
+    }
+    .stat:first-child { padding-left: 0; border-left: 0; }
+    .stat:hover { transform: translateY(-3px); border-color: rgba(201,194,165,.36); }
+    .stat-label {
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: .19em;
+      text-transform: uppercase;
+    }
+    .stat-value {
+      display: block;
+      margin-top: 12px;
+      color: var(--champagne);
+      font: 400 clamp(2.5rem, 4vw, 4rem)/1 var(--serif);
+      letter-spacing: -.03em;
+    }
+    .stat-value.adaptive { font-size: clamp(1.8rem, 3vw, 2.8rem); font-style: italic; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(280px, .8fr);
+      gap: clamp(38px, 7vw, 110px);
+      padding: 78px 0 90px;
+      align-items: start;
+    }
+    .section-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 27px;
+    }
+    .section-heading h2, .side-section h2, .results-heading {
+      margin: 7px 0 0;
+      color: var(--champagne);
+      font: 400 clamp(2.3rem, 4vw, 4rem)/1 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .badge {
+      margin-top: 9px;
+      padding: 6px 9px;
+      border: 1px solid var(--rule);
+      color: var(--secondary);
+      font-size: 9px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .query-hint, .side-copy { color: var(--muted); font-size: 12px; line-height: 1.8; }
+    .ask-form { margin-top: 27px; }
+    .query-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid rgba(201,194,165,.42);
+      transition: border-color .25s ease, box-shadow .25s ease;
+    }
+    .query-wrap:focus-within {
+      border-color: var(--red);
+      box-shadow: 0 1px 0 var(--red);
+    }
+    .query-symbol { color: var(--red); font: 26px var(--serif); }
+    .query-wrap input {
+      min-width: 0;
+      flex: 1;
+      padding: 16px 0;
+      border: 0;
+      outline: 0;
+      color: var(--champagne);
+      background: transparent;
+      font-size: 13px;
+    }
+    input::placeholder { color: #6d675f; opacity: 1; }
+    .ask-button, .index-button {
+      border: 1px solid rgba(197,43,50,.55);
+      background: transparent;
+      color: var(--champagne);
+      padding: 10px 18px;
+      cursor: pointer;
+      font-size: 10px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      transition: color .22s ease, background .22s ease, border-color .22s ease;
+    }
+    .ask-button:hover, .index-button:hover {
+      color: #fff3e7;
+      background: rgba(143,23,29,.28);
+      border-color: var(--red);
+    }
+    button:disabled { opacity: .58; cursor: wait; }
+    .ask-button:disabled::after, .index-button:disabled::after {
+      content: "";
+      display: inline-block;
+      width: 10px; height: 10px;
+      margin-left: 9px;
+      border: 1px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      vertical-align: -1px;
+      animation: spin .75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .notice { min-height: 20px; margin: 12px 0 0; color: var(--secondary); font-size: 11px; }
+    .notice.error { color: #e78d8d; }
+
+    .results { margin-top: 48px; }
+    .results-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 20px;
+      padding: 0 0 16px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .results-heading { font-size: clamp(1.8rem, 3vw, 2.5rem); }
+    .result-count { color: var(--muted); font-size: 10px; letter-spacing: .13em; text-transform: uppercase; }
+    .answer-copy {
+      margin: 22px 0 26px;
+      color: #ddd5bd;
+      font: 400 clamp(1.25rem, 2vw, 1.65rem)/1.65 var(--serif);
+      white-space: pre-wrap;
+    }
+    .citation-list { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 24px; }
+    .citation {
+      border: 1px solid var(--rule);
+      padding: 4px 8px;
+      color: var(--secondary);
+      font-size: 9px;
+      letter-spacing: .06em;
+    }
+    .citation.good { border-color: rgba(201,194,165,.32); color: var(--champagne); }
+    .citation.bad { border-color: rgba(197,43,50,.55); color: #dc8585; }
+    .source {
+      border-top: 1px solid var(--rule);
+      padding: 0;
+    }
+    .source:last-child { border-bottom: 1px solid var(--rule); }
+    .source summary {
+      display: grid;
+      grid-template-columns: 44px minmax(0,1fr) auto;
+      align-items: center;
+      gap: 12px;
+      padding: 17px 0;
+      cursor: pointer;
+      list-style: none;
+    }
+    .source summary::-webkit-details-marker { display: none; }
+    .source summary::after { content: "+"; color: var(--red); font-size: 18px; }
+    .source[open] summary::after { content: "−"; }
+    .source-number { color: var(--red); font: 18px var(--serif); }
+    .source-title { color: var(--champagne); font: 18px/1.25 var(--serif); }
+    .source-meta { color: var(--muted); font-size: 9px; text-align: right; white-space: nowrap; }
+    .source-body { padding: 0 0 19px 56px; color: var(--secondary); font-size: 11px; line-height: 1.9; }
+    .source-body p { margin: 0 0 10px; white-space: pre-wrap; }
+    .source-body a { color: var(--champagne); font-size: 10px; text-decoration-color: var(--crimson); text-underline-offset: 4px; }
+    .source-score { color: var(--champagne); }
+
+    .side-column { display: grid; gap: 62px; }
+    .side-section { padding-top: 7px; }
+    .side-section + .side-section { border-top: 1px solid var(--rule); padding-top: 28px; }
+    .side-section h2 { font-size: clamp(1.8rem, 3vw, 2.5rem); }
+    .side-copy { margin: 13px 0 21px; }
+    .index-form { display: grid; grid-template-columns: 1fr 72px auto; gap: 9px; }
+    .index-form input {
+      width: 100%;
+      min-width: 0;
+      padding: 11px 0;
+      border: 0;
+      border-bottom: 1px solid var(--rule);
+      border-radius: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--champagne);
+      font-size: 11px;
+    }
+    .index-form input:focus { border-color: var(--red); }
+    .index-form .index-button { padding: 9px 11px; }
+    .progress-track { height: 1px; margin-top: 18px; background: rgba(201,194,165,.1); overflow: hidden; }
+    .progress-bar { width: 34%; height: 100%; background: var(--red); opacity: 0; }
+    .indexing .progress-bar { opacity: 1; animation: progress 1.8s ease-in-out infinite; }
+    @keyframes progress { from { transform: translateX(-110%); } to { transform: translateX(320%); } }
+
+    .weights-list { display: grid; gap: 17px; margin-top: 22px; }
+    .weight-row { display: grid; grid-template-columns: 90px 1fr 44px; gap: 12px; align-items: center; }
+    .weight-name { color: var(--secondary); font-size: 10px; }
+    .weight-track { height: 2px; background: rgba(201,194,165,.12); }
+    .weight-fill { width: 0; height: 100%; background: var(--champagne); transition: width .75s cubic-bezier(.2,.8,.2,1); }
+    .weight-row[data-signal="recency"] .weight-fill { background: #9a3e43; }
+    .weight-row[data-signal="feedback"] .weight-fill { background: #827d6e; }
+    .weight-value { color: var(--champagne); font: 16px var(--serif); text-align: right; }
+    .weight-caption { margin-top: 16px; color: var(--muted); font-size: 10px; line-height: 1.75; }
+
+    .metrics-list { display: grid; grid-template-columns: repeat(2, 1fr); margin-top: 18px; }
+    .metric { padding: 11px 8px 11px 0; border-top: 1px solid var(--rule); }
+    .metric strong { display: block; color: var(--champagne); font: 22px var(--serif); }
+    .metric span { color: var(--muted); font-size: 8px; letter-spacing: .12em; text-transform: uppercase; }
+
+    .right-rail {
+      position: fixed;
+      z-index: 3;
+      right: 20px;
+      top: 50%;
+      display: grid;
+      gap: 18px;
+      transform: translateY(-50%);
+    }
+    .right-rail a {
+      color: var(--muted);
+      font-size: 8px;
+      letter-spacing: .13em;
+      text-decoration: none;
+      text-transform: uppercase;
+      writing-mode: vertical-rl;
+      transition: color .2s ease;
+    }
+    .right-rail a:hover { color: var(--champagne); }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px 0 24px;
+      border-top: 1px solid var(--rule);
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .fade-in { animation: fade-in .7s ease both; }
+    @keyframes fade-in { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: none; } }
+
+    @media (max-width: 980px) {
+      .frame { padding-right: 6%; padding-left: 6%; }
+      .hero { min-height: 420px; }
+      .hero-art { right: -6%; width: 59%; }
+      .workspace { grid-template-columns: minmax(0,1.3fr) minmax(240px,.8fr); gap: 38px; }
+      .right-rail { display: none; }
+    }
+    @media (max-width: 700px) {
+      .frame { padding-right: 22px; padding-left: 22px; }
+      .masthead { height: 62px; }
+      .mast-meta { gap: 12px; font-size: 8px; }
+      .mast-meta span:first-child { display: none; }
+      .hero { min-height: 490px; display: block; }
+      .hero-copy { padding-top: 72px; }
+      .hero h1 { max-width: 480px; font-size: clamp(4rem, 17vw, 7rem); }
+      .hero-description { max-width: 360px; }
+      .hero-art { width: 78%; height: 70%; top: auto; right: -16%; bottom: -1%; opacity: .46; }
+      .hero-stamp { bottom: 20px; }
+      .stats { grid-template-columns: repeat(2, 1fr); padding: 26px 0 30px; }
+      .stat { min-height: 98px; padding: 8px 12px 14px; border-left: 1px solid var(--rule); }
+      .stat:nth-child(odd) { padding-left: 0; border-left: 0; }
+      .stat:nth-child(n+3) { border-top: 1px solid var(--rule); padding-top: 18px; }
+      .stat-value { font-size: 3rem; }
+      .workspace { grid-template-columns: 1fr; gap: 54px; padding-top: 55px; }
+      .side-column { grid-template-columns: 1fr; gap: 42px; }
+      .source summary { grid-template-columns: 32px minmax(0,1fr) auto; gap: 8px; }
+      .source-title { font-size: 16px; }
+      .source-meta { font-size: 8px; }
+      .source-body { padding-left: 40px; }
+      .footer { font-size: 8px; }
+    }
+    @media (max-width: 420px) {
+      .frame { padding-right: 17px; padding-left: 17px; }
+      .hero h1 { font-size: 3.8rem; }
+      .index-form { grid-template-columns: 1fr 60px; }
+      .index-form .index-button { grid-column: 1 / -1; }
+      .ask-button { padding-right: 12px; padding-left: 12px; }
+      .query-wrap { gap: 10px; }
+      .query-wrap input { font-size: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="right-rail" aria-label="Page sections">
+    <a href="#research">Research</a>
+    <a href="#index">Index</a>
+    <a href="#learning">Learning</a>
+  </nav>
+  <div class="frame">
+    <header class="masthead">
+      <div class="wordmark">Self-Improving RAG</div>
+      <div class="mast-meta"><span>AI Research System / 2026</span><span class="live-mark">Live literature</span></div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy fade-in">
+          <div class="eyebrow">An evidence-first research instrument</div>
+          <h1 id="hero-title">Intelligence<br>That <span>Learns.</span></h1>
+          <p class="hero-description">Grounded answers from evolving research. Retrieval that improves with every interaction.</p>
+        </div>
+        <div class="hero-stamp"><span>arXiv · adaptive retrieval</span><span>Vol. 01 — 2026</span></div>
+        <svg class="hero-art" viewBox="0 0 600 560" role="img" aria-label="Abstract sculptural crimson botanical form">
+          <defs>
+            <radialGradient id="petal" cx="38%" cy="30%" r="75%">
+              <stop offset="0" stop-color="#f05a50"/>
+              <stop offset=".34" stop-color="#c52b32"/>
+              <stop offset=".72" stop-color="#741118"/>
+              <stop offset="1" stop-color="#27090d"/>
+            </radialGradient>
+            <linearGradient id="fold" x1="0" y1="0" x2="1" y2="1">
+              <stop stop-color="#f27866" stop-opacity=".85"/>
+              <stop offset=".42" stop-color="#b51d27" stop-opacity=".32"/>
+              <stop offset="1" stop-color="#24080b" stop-opacity=".8"/>
+            </linearGradient>
+            <radialGradient id="core" cx="40%" cy="35%">
+              <stop stop-color="#e7b989"/>
+              <stop offset=".3" stop-color="#8f171d"/>
+              <stop offset="1" stop-color="#26080c"/>
+            </radialGradient>
+            <filter id="soft-shadow" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="18"/>
+            </filter>
+          </defs>
+          <ellipse cx="340" cy="298" rx="178" ry="180" fill="#6e1118" opacity=".19" filter="url(#soft-shadow)"/>
+          <g class="halo" opacity=".86">
+            <path class="petal" d="M337 300 C282 227 236 100 284 41 C343 79 370 176 352 286 C385 180 456 94 515 91 C530 171 455 270 363 316 C473 286 558 304 581 357 C510 407 413 392 354 335 C420 417 428 494 382 531 C325 486 303 398 328 330 C284 426 222 476 169 453 C169 379 235 318 321 296 C222 310 143 277 129 222 C204 180 283 229 337 300Z" fill="url(#petal)" stroke="#d9574d" stroke-opacity=".35" stroke-width="1.2"/>
+            <path d="M338 302 C300 226 280 136 295 69 C329 127 345 208 344 291 C375 212 429 148 486 118 C450 186 402 250 355 304 C436 287 501 302 548 340 C475 331 408 324 350 321 C394 368 410 426 393 481 C360 418 340 366 334 324 C297 386 247 425 195 439 C232 393 281 340 330 310 C257 311 193 286 154 239 C219 250 282 277 338 302Z" fill="url(#fold)" opacity=".8"/>
+            <circle cx="342" cy="305" r="44" fill="url(#core)"/>
+            <circle cx="342" cy="305" r="12" fill="#d9b685" opacity=".75"/>
+            <path d="M335 342 C330 405 309 472 269 536 C322 493 354 423 359 344" fill="none" stroke="#812027" stroke-width="9" stroke-linecap="round"/>
+            <path d="M304 444 C257 421 214 414 181 426 C218 446 251 458 287 458 M344 397 C391 379 434 374 470 389 C430 405 394 416 353 416" fill="none" stroke="#9e2931" stroke-width="5" stroke-linecap="round" opacity=".85"/>
+          </g>
+        </svg>
+      </section>
+
+      <section class="stats" aria-label="Research system statistics" aria-live="polite">
+        <div class="stat"><div class="stat-label">Indexed papers</div><strong class="stat-value" id="paper-count">—</strong></div>
+        <div class="stat"><div class="stat-label">Evidence chunks</div><strong class="stat-value" id="chunk-count">—</strong></div>
+        <div class="stat"><div class="stat-label">Judged answers</div><strong class="stat-value" id="evaluation-count">—</strong></div>
+        <div class="stat"><div class="stat-label">Retrieval state</div><strong class="stat-value adaptive" id="weight-status">—</strong></div>
+      </section>
+
+      <div class="workspace">
+        <section id="research" aria-labelledby="research-title">
+          <div class="section-heading">
+            <div>
+              <div class="section-kicker">01 / Query the literature</div>
+              <h2 id="research-title">Ask a research question</h2>
+            </div>
+            <span class="badge">Evidence</span>
+          </div>
+          <p class="query-hint">Answers are composed from indexed arXiv passages. Every citation is checked against retrieved evidence.</p>
+          <form id="ask-form" class="ask-form">
+            <label class="query-wrap">
+              <span class="query-symbol" aria-hidden="true">⌕</span>
+              <input name="question" aria-label="Research question" placeholder="What are the recent approaches to retrieval augmentation?" required>
+              <button class="ask-button" type="submit">Ask <span aria-hidden="true">↗</span></button>
+            </label>
+          </form>
+          <p id="ask-notice" class="notice" role="status"></p>
+
+          <section id="results" class="results" aria-live="polite" hidden>
+            <div class="results-top">
+              <div><div class="section-kicker">Research response</div><h3 class="results-heading">Findings</h3></div>
+              <span id="result-count" class="result-count"></span>
+            </div>
+            <div id="answer-copy" class="answer-copy"></div>
+            <div id="citations" class="citation-list"></div>
+            <div id="sources"></div>
+          </section>
+        </section>
+
+        <aside class="side-column">
+          <section id="index" class="side-section">
+            <div class="section-kicker">02 / Grow the corpus</div>
+            <h2>Index arXiv</h2>
+            <p class="side-copy">Search recent research, retrieve PDFs, extract and embed passages into your local evidence library.</p>
+            <form id="ingest-form" class="index-form">
+              <input name="query" aria-label="arXiv search topic" placeholder="Research topic" required>
+              <input name="limit" type="number" min="1" max="50" value="10" aria-label="Number of papers">
+              <button class="index-button" type="submit">Index</button>
+            </form>
+            <div id="index-progress" class="progress-track" role="progressbar" aria-label="Indexing papers" aria-valuetext="Idle"><div class="progress-bar"></div></div>
+            <p id="ingest-notice" class="notice" role="status"></p>
+          </section>
+
+          <section id="learning" class="side-section">
+            <div class="section-kicker">03 / Online adaptation</div>
+            <h2>Retrieval signals</h2>
+            <p class="side-copy">The ranking balances semantic relevance, recency, and learned feedback. Each judged answer can shift the mix.</p>
+            <div id="weights" class="weights-list" aria-live="polite"></div>
+            <p class="weight-caption">Normalized ranking weights, updated from observed chunk relevance.</p>
+          </section>
+
+          <section class="side-section">
+            <div class="section-kicker">04 / Grounding quality</div>
+            <h2>Answer evaluation</h2>
+            <p class="side-copy">Metrics are computed from judge verdicts and verified citation support.</p>
+            <div id="metrics" class="metrics-list"><p class="side-copy">Metrics appear after the first judged answer.</p></div>
+          </section>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="footer"><span>Self-Improving RAG</span><span>Evidence in · understanding out</span></footer>
+  </div>
+
+  <script>
+    const $ = (selector) => document.querySelector(selector);
+    const numberFormat = new Intl.NumberFormat(undefined);
+    const signalOrder = ["semantic", "recency", "feedback"];
+
+    async function request(url, data) {
+      const options = data === undefined ? {} : {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+      };
+      const response = await fetch(url, options);
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.detail || result.error || `Request failed (${response.status})`);
+      return result;
+    }
+
+    function notice(selector, text, isError = false) {
+      const node = $(selector);
+      node.textContent = text;
+      node.classList.toggle("error", isError);
+    }
+
+    function showWeights(weights) {
+      const container = $("#weights");
+      container.replaceChildren(...signalOrder.map((name) => {
+        const value = Number(weights[name] ?? 0);
+        const row = document.createElement("div");
+        row.className = "weight-row";
+        row.dataset.signal = name;
+        const label = document.createElement("span");
+        label.className = "weight-name";
+        label.textContent = name[0].toUpperCase() + name.slice(1);
+        const track = document.createElement("span");
+        track.className = "weight-track";
+        const fill = document.createElement("span");
+        fill.className = "weight-fill";
+        fill.style.display = "block";
+        fill.style.width = `${Math.max(0, Math.min(1, value)) * 100}%`;
+        track.append(fill);
+        const percentage = document.createElement("strong");
+        percentage.className = "weight-value";
+        percentage.textContent = `${(value * 100).toFixed(0)}%`;
+        row.append(label, track, percentage);
+        return row;
+      }));
+      $("#weight-status").textContent = "Adaptive";
+    }
+
+    function showMetrics(metrics) {
+      const names = [
+        ["chunk_precision", "Chunk precision"],
+        ["chunk_recall", "Chunk recall"],
+        ["chunk_f1", "Chunk F1"],
+        ["citation_precision", "Citation precision"],
+        ["citation_recall", "Citation recall"],
+        ["citation_f1", "Citation F1"],
+        ["invalid_citations", "Invalid citations"]
+      ];
+      $("#metrics").replaceChildren(...names.map(([key, label]) => {
+        const item = document.createElement("div");
+        item.className = "metric";
+        const value = document.createElement("strong");
+        value.textContent = key === "invalid_citations"
+          ? String(metrics[key] ?? 0)
+          : `${(Number(metrics[key] ?? 0) * 100).toFixed(0)}%`;
+        const caption = document.createElement("span");
+        caption.textContent = label;
+        item.append(value, caption);
+        return item;
+      }));
+    }
+
+    function showAnswer(result) {
+      $("#results").hidden = false;
+      $("#results").classList.remove("fade-in");
+      void $("#results").offsetWidth;
+      $("#results").classList.add("fade-in");
+      $("#answer-copy").textContent = result.answer;
+      $("#result-count").textContent = `${result.sources.length} evidence passages`;
+
+      const citationContainer = $("#citations");
+      citationContainer.replaceChildren(...result.citations.map((citation) => {
+        const marker = document.createElement("span");
+        marker.className = `citation ${citation.supported ? "good" : "bad"}`;
+        marker.textContent = `${citation.marker} · ${citation.supported ? "supported" : "unsupported"}`;
+        return marker;
+      }));
+
+      $("#sources").replaceChildren(...result.sources.map((source, index) => {
+        const details = document.createElement("details");
+        details.className = "source";
+        const summary = document.createElement("summary");
+        const number = document.createElement("span");
+        number.className = "source-number";
+        number.textContent = String(index + 1).padStart(2, "0");
+        const title = document.createElement("span");
+        title.className = "source-title";
+        title.textContent = source.title;
+        const meta = document.createElement("span");
+        meta.className = "source-meta";
+        meta.textContent = `${source.published.slice(0, 10)} · ${Number(source.score).toFixed(3)}`;
+        summary.append(number, title, meta);
+
+        const body = document.createElement("div");
+        body.className = "source-body";
+        const passage = document.createElement("p");
+        passage.textContent = source.text;
+        const relevance = document.createElement("p");
+        relevance.className = "source-score";
+        relevance.textContent = `Retrieval relevance ${source.relevant ? "· judged relevant" : "· not judged relevant"} · score ${Number(source.score).toFixed(4)}`;
+        const link = document.createElement("a");
+        link.href = `https://arxiv.org/abs/${encodeURIComponent(source.arxiv_id)}`;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = `Read paper on arXiv · ${source.arxiv_id}`;
+        body.append(passage, relevance, link);
+        details.append(summary, body);
+        return details;
+      }));
+      showMetrics(result.metrics);
+      showWeights(result.weights);
+      $("#results").scrollIntoView({behavior: "smooth", block: "nearest"});
+    }
+
+    $("#ask-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = form.querySelector("button");
+      const question = form.elements.question.value.trim();
+      if (!question) return;
+      button.disabled = true;
+      notice("#ask-notice", "Retrieving passages and verifying citations…");
+      try {
+        const result = await request("/api/ask", {question});
+        showAnswer(result);
+        form.reset();
+        notice("#ask-notice", "Answer evaluated. Retrieval weights updated from evidence relevance.");
+        await refreshStats();
+      } catch (error) {
+        notice("#ask-notice", error.message, true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    $("#ingest-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = form.querySelector("button");
+      const progress = $("#index-progress");
+      button.disabled = true;
+      progress.classList.add("indexing");
+      progress.setAttribute("aria-valuetext", "Indexing");
+      notice("#ingest-notice", "Searching arXiv, downloading PDFs, and embedding passages…");
+      try {
+        const result = await request("/api/ingest", {
+          query: form.elements.query.value.trim(),
+          limit: Number(form.elements.limit.value)
+        });
+        notice("#ingest-notice", `Indexed ${result.papers} papers and ${result.chunks} evidence chunks.`);
+        await refreshStats();
+      } catch (error) {
+        notice("#ingest-notice", error.message, true);
+      } finally {
+        button.disabled = false;
+        progress.classList.remove("indexing");
+        progress.setAttribute("aria-valuetext", "Idle");
+      }
+    });
+
+    async function refreshStats() {
+      const data = await request("/api/stats");
+      $("#paper-count").textContent = numberFormat.format(data.papers);
+      $("#chunk-count").textContent = numberFormat.format(data.chunks);
+      $("#evaluation-count").textContent = numberFormat.format(data.evaluations);
+      showWeights(data.weights);
+    }
+
+    refreshStats().catch((error) => notice("#ask-notice", `Could not load research statistics: ${error.message}`, true));
+  </script>
+</body>
+</html>
