@@ -35,51 +35,528 @@ PAGE = """<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1018">
-  <title>Self-Improving RAG | arXiv</title>
+  <meta name="theme-color" content="#0b0d0f">
+  <title>Automate Flows</title>
   <style>
-    :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:#0b1018;color:#edf3fb;font-synthesis:none;--panel:#121a25;--border:#253243;--muted:#9cacc1;--mint:#79e6c1;--blue:#8eb8ff;--red:#ff9797}
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 8% 0%,#15372e 0,transparent 36%),radial-gradient(ellipse at 92% 10%,#1d2c49 0,transparent 30%),#0b1018}
-    header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:1rem max(1.2rem,calc((100vw - 1120px)/2));border-bottom:1px solid #253243;background:#0b1018df;backdrop-filter:blur(16px)}
-    .brand{display:flex;gap:.8rem;align-items:center}.mark{display:grid;place-items:center;width:2.6rem;height:2.6rem;border-radius:.9rem;background:linear-gradient(135deg,#79e6c1,#b7f5d8);color:#08251d;font-weight:900}.brand h1{font-size:1rem;margin:0}.brand p{margin:.16rem 0 0;color:var(--muted);font-size:.76rem}
-    .pill{border:1px solid #325047;border-radius:999px;padding:.45rem .75rem;color:var(--mint);font-size:.75rem}
-    main{max-width:1120px;margin:auto;padding:2.2rem 1.2rem 3rem}.eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:.7rem;color:var(--mint)}
-    h2{font-size:clamp(2rem,5vw,3.8rem);line-height:1.04;letter-spacing:-.055em;max-width:800px;margin:.7rem 0}.lead{max-width:700px;color:var(--muted);line-height:1.7}
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin:1.5rem 0}.stat,.card{border:1px solid var(--border);border-radius:1rem;background:#121a25e8;box-shadow:0 20px 55px #0003}.stat{padding:.9rem 1rem;color:var(--muted);font-size:.8rem}.stat strong{display:block;color:#f1f5fb;font-size:1.25rem;margin-bottom:.25rem;font-variant-numeric:tabular-nums}
-    .grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(270px,.8fr);gap:1rem;align-items:start}.card{padding:1.2rem}.card h3{margin:0;font-size:1rem}.hint{color:var(--muted);font-size:.82rem;line-height:1.55;margin:.4rem 0 1rem}
-    form{display:flex;gap:.65rem}input{min-width:0;flex:1;padding:.8rem .9rem;border:1px solid var(--border);border-radius:.7rem;color:inherit;background:#0b1119;font:inherit;outline:none}input:focus{border-color:var(--mint);box-shadow:0 0 0 3px #79e6c122}button{border:0;border-radius:.7rem;padding:.75rem 1rem;background:linear-gradient(135deg,#79e6c1,#b9f4d8);color:#09241d;font:inherit;font-weight:750;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.query-row{display:flex;gap:.6rem}.query-row input{width:5rem;flex:0 0 5rem}
-    #conversation{display:flex;flex-direction:column;gap:.8rem;margin:1rem 0}.bubble{max-width:92%;padding:.9rem 1rem;border-radius:.9rem;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}.bubble.user{align-self:flex-end;background:#79e6c1;color:#08251d}.bubble.assistant{border:1px solid var(--border);background:#0d141d}
-    .source{border-top:1px solid var(--border);padding:.7rem 0;color:#dce7f3}.source summary{cursor:pointer}.source p{font-size:.82rem;color:#c2d0df;line-height:1.6;white-space:pre-wrap}.tag{display:inline-block;margin:.35rem .35rem 0 0;padding:.24rem .48rem;border-radius:999px;background:#1d2a37;color:#bed0e1;font-size:.7rem}.good{color:var(--mint)}.bad{color:var(--red)}.notice{min-height:1.2rem;color:var(--muted);font-size:.8rem;margin:.75rem 0 0}.error{color:var(--red)}.weights{display:grid;gap:.55rem;margin-top:.7rem}.weight{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}.weight strong{color:#eaf1f9}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}.metric{padding:.55rem;background:#0b1119;border-radius:.6rem;color:var(--muted);font-size:.72rem}.metric strong{display:block;color:#edf3fb;font-size:.95rem;margin-bottom:.15rem}a{color:var(--blue)}
-    @media(max-width:760px){header{padding:1rem}.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.query-row{flex-wrap:wrap}.query-row input:first-child{flex-basis:100%}}
+    :root {
+      --bg: #07090a;
+      --panel: rgba(30, 26, 22, 0.72);
+      --panel-strong: rgba(28, 24, 20, 0.84);
+      --stroke: rgba(255,255,255,0.12);
+      --muted: rgba(255,255,255,0.6);
+      --text: #f4f1ee;
+      --soft: rgba(248,236,215,0.62);
+      --line: rgba(255,255,255,0.18);
+      --green: #d7f0dd;
+      --accent: #efe5d8;
+      --shadow: rgba(0,0,0,0.42);
+      --chart: rgba(255,255,255,0.85);
+      --grid: rgba(255,255,255,0.14);
+      --danger: #ff8d8d;
+      --pill: rgba(255,255,255,0.08);
+      --dark-pill: rgba(5, 5, 5, 0.36);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, "Segoe UI", sans-serif;
+      background:
+        linear-gradient(0deg, rgba(0,0,0,0.36), rgba(0,0,0,0.36)),
+        radial-gradient(circle at 15% 15%, rgba(100,70,38,0.35), transparent 30%),
+        linear-gradient(180deg, rgba(15,12,10,0.68), rgba(11,11,11,0.9)),
+        repeating-linear-gradient(
+          90deg,
+          rgba(101,76,50,0.32) 0 2px,
+          rgba(83,68,49,0.18) 2px 4px,
+          rgba(52,41,30,0.28) 4px 6px,
+          rgba(73,55,39,0.26) 6px 8px
+        );
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 26px 18px 28px;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(0,0,0,0.2), rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.18) 60%, rgba(0,0,0,0.32)),
+        repeating-linear-gradient(
+          90deg,
+          rgba(63,45,31,0.38) 0 10px,
+          rgba(96,70,49,0.28) 10px 24px,
+          rgba(42,31,24,0.28) 24px 34px,
+          rgba(80,59,42,0.18) 34px 42px
+        );
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .page-shell {
+      position: relative;
+      width: min(1280px, 96vw);
+      min-height: 560px;
+      padding: 0 0 12px;
+      z-index: 1;
+    }
+
+    .page-title {
+      color: rgba(255,255,255,0.9);
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      margin: 0 0 12px 8px;
+      opacity: 0.92;
+    }
+
+    .page-title small {
+      display: block;
+      margin-top: 2px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.52);
+      font-weight: 400;
+    }
+
+    .dashboard-shell {
+      position: relative;
+      background: linear-gradient(180deg, rgba(103,72,49,0.54), rgba(93,68,44,0.44));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 28px;
+      padding: 18px 20px 18px;
+      box-shadow: 0 40px 90px rgba(0,0,0,0.28);
+      overflow: hidden;
+      min-height: 500px;
+      backdrop-filter: blur(10px);
+    }
+
+    .dashboard-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      pointer-events: none;
+    }
+
+    .shell-header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 82px;
+      padding: 10px 12px 12px 16px;
+      border-radius: 20px 20px 0 0;
+      background: rgba(30, 26, 22, 0.18);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 -1px rgba(255,255,255,0.04);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(247,242,235,0.96), rgba(194,183,170,0.9));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.65), 0 8px 18px rgba(17,17,17,0.18);
+      position: relative;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .brand-mark::before {
+      content: "";
+      width: 17px;
+      height: 17px;
+      border: 2px solid rgba(18,18,22,0.9);
+      border-top-width: 2.5px;
+      border-radius: 4px;
+      transform: translateY(-1px);
+      display: block;
+      position: relative;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
+    }
+
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 12px;
+      border: 2px solid rgba(18,18,22,0.9);
+      border-bottom: none;
+      border-radius: 12px 12px 0 0;
+      transform: translateY(8px);
+    }
+
+    .brand-name {
+      font-size: clamp(1.15rem, 2vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      color: rgba(255,255,255,0.92);
+      white-space: nowrap;
+    }
+
+    .shell-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: rgba(255,255,255,0.72);
+    }
+
+    .glass-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 8px 12px 8px 10px;
+      font-size: 0.98rem;
+      font-weight: 500;
+    }
+
+    .glass-button .icon {
+      font-size: 1.1rem;
+      opacity: 0.8;
+    }
+
+    .theme-pill {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.06);
+      display: grid;
+      place-items: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(220px, 0.92fr) minmax(380px, 1.6fr);
+      gap: 20px;
+      padding: 28px 18px 0;
+      min-height: 380px;
+    }
+
+    .panel {
+      position: relative;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(49, 41, 35, 0.28);
+      box-shadow: inset 0 1px rgba(255,255,255,0.03);
+      backdrop-filter: blur(14px);
+    }
+
+    .balance-panel {
+      padding: 24px 20px 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 290px;
+    }
+
+    .balance-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .balance-top .mini-label {
+      color: rgba(255,255,255,0.72);
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .balance-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.18);
+      display: grid;
+      place-items: center;
+      color: rgba(255,255,255,0.76);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .balance-info {
+      margin-top: 32px;
+    }
+
+    .balance-label {
+      font-size: 1.06rem;
+      color: rgba(255,255,255,0.68);
+      margin-bottom: 8px;
+    }
+
+    .amount {
+      font-size: clamp(2.1rem, 4vw, 3.1rem);
+      line-height: 1;
+      letter-spacing: -0.07em;
+      font-weight: 700;
+      color: rgba(255,255,255,0.96);
+      margin: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .trend {
+      margin-top: 14px;
+      color: rgba(255,255,255,0.64);
+      font-size: 0.96rem;
+      letter-spacing: -0.02em;
+    }
+
+    .trend strong { color: #cfead8; }
+
+    .chart-panel {
+      padding: 24px 22px 18px;
+      background: rgba(52, 44, 38, 0.16);
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .chart-title {
+      font-size: clamp(1.4rem, 2vw, 2.2rem);
+      margin: 0;
+      letter-spacing: -0.06em;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .segmented {
+      display: inline-flex;
+      gap: 6px;
+      padding: 4px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .segmented button {
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      padding: 7px 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .segmented .active {
+      background: rgba(15,16,17,0.45);
+      color: rgba(255,255,255,0.9);
+    }
+
+    .totals {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .totals-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255,255,255,0.62);
+      font-size: 0.98rem;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.82);
+      display: inline-block;
+    }
+
+    .dot.muted { background: rgba(255,255,255,0.42); }
+
+    .totals-values {
+      display: flex;
+      gap: 28px;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      margin-bottom: 10px;
+    }
+
+    .value {
+      font-size: clamp(1.6rem, 2.8vw, 2.5rem);
+      letter-spacing: -0.07em;
+      font-weight: 700;
+      color: rgba(255,255,255,0.96);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chart-wrap {
+      position: relative;
+      margin-top: 6px;
+      height: 206px;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .chart-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.00)),
+        repeating-linear-gradient(
+          180deg,
+          transparent 0,
+          transparent 29px,
+          rgba(255,255,255,0.08) 29px,
+          rgba(255,255,255,0.08) 30px
+        );
+      pointer-events: none;
+    }
+
+    .chart-wrap svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.95;
+    }
+
+    .chart-wrap .y-labels {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px 0 18px 0;
+      color: rgba(255,255,255,0.45);
+      font-size: 0.72rem;
+      pointer-events: none;
+    }
+
+    .chart-wrap .y-labels span {
+      display: block;
+      margin-left: 10px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 900px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      .shell-header {
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .brand-name {
+        white-space: normal;
+      }
+    }
   </style>
 </head>
 <body>
-  <header><div class="brand"><div class="mark">R</div><div><h1>Self-Improving RAG</h1><p>Grounded answers from live arXiv literature</p></div></div><span class="pill">Local workspace</span></header>
-  <main>
-    <div class="eyebrow">Evidence-first research assistant</div>
-    <h2>Explore the literature.<br>Keep the evidence in view.</h2>
-    <p class="lead">Search arXiv, index paper passages, and ask questions with chunk-level citations. Retrieval weights adapt from per-chunk judge verdicts; evaluation metrics are computed locally from those verdicts.</p>
-    <section class="stats" aria-live="polite">
-      <div class="stat"><strong id="paper-count">—</strong>indexed papers</div><div class="stat"><strong id="chunk-count">—</strong>evidence chunks</div>
-      <div class="stat"><strong id="evaluation-count">—</strong>judged answers</div><div class="stat"><strong id="weight-status">—</strong>retrieval weights</div>
-    </section>
-    <div class="grid">
-      <section class="card">
-        <h3>Ask a research question</h3><p class="hint">Answers use only indexed passages. Each citation points to a stored chunk and is checked before display.</p>
-        <div id="conversation" aria-live="polite"><div class="bubble assistant">Index a topic to get started, then ask a question across the retrieved papers.</div></div>
-        <form id="ask-form"><input name="question" aria-label="Research question" placeholder="What are the recent approaches to retrieval augmentation?" required><button>Ask</button></form>
-        <div id="answer-meta"></div><p id="ask-notice" class="notice" role="status"></p>
-      </section>
-      <aside style="display:grid;gap:1rem">
-        <section class="card"><h3>Index live arXiv papers</h3><p class="hint">Find the newest matching papers, download PDFs, extract text, embed chunks, and store them for retrieval.</p>
-          <form id="ingest-form" class="query-row"><input name="query" aria-label="arXiv search topic" placeholder="retrieval augmented generation" required><input name="limit" type="number" min="1" max="50" value="10" aria-label="Paper count"><button>Index</button></form><p id="ingest-notice" class="notice" role="status"></p>
+  <div class="page-shell">
+    <h1 class="page-title">Top today<small>The most saved components of the day</small></h1>
+
+    <div class="dashboard-shell">
+      <div class="shell-header">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div class="brand-name">Automate Flows</div>
+        </div>
+
+        <div class="shell-actions">
+          <div class="glass-button"><span class="icon">◌</span>Adjust glass</div>
+          <div class="theme-pill" aria-label="Theme toggle">T</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <section class="panel balance-panel">
+          <div class="balance-top">
+            <p class="mini-label">Available balance</p>
+            <div class="balance-icon">▣</div>
+          </div>
+
+          <div class="balance-info">
+            <div class="amount" id="paper-count">$28,430.60</div>
+            <div class="trend"><strong>+8.2%</strong> compared with last month</div>
+          </div>
         </section>
-        <section class="card"><h3>Signal weights</h3><p class="hint">Updated online from how well each signal separates relevant from irrelevant chunks.</p><div id="weights" class="weights"></div></section>
-        <section class="card"><h3>Answer evaluation</h3><p class="hint">Six code-computed measures based on judge verdicts, plus a count of unresolved citation markers.</p><div id="metrics" class="metrics"><div class="metric">Metrics appear after an answer is judged.</div></div></section>
-        <section class="card"><h3>Run the benchmark</h3><p class="hint">The CLI harness compares fixed semantic-only retrieval against online adaptation over three learning cycles, then evaluates 12 held-out paraphrases.</p><p class="hint">See <a href="/docs">API documentation</a> and the README for setup.</p></section>
-      </aside>
+
+        <section class="panel chart-panel">
+          <div class="chart-header">
+            <h2 class="chart-title">Cash flow</h2>
+            <div class="segmented" aria-label="Range selector">
+              <button type="button">Week</button>
+              <button type="button" class="active">Month</button>
+              <button type="button">Year</button>
+            </div>
+          </div>
+
+          <div class="totals">
+            <div class="totals-item"><span class="dot"></span>Money in</div>
+            <div class="totals-item"><span class="dot muted"></span>Money out</div>
+          </div>
+
+          <div class="totals-values">
+            <div class="value" id="chunk-count">$11,050.00</div>
+            <div class="value" id="weight-status">$2,399.30</div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="y-labels" aria-hidden="true">
+              <span>$1,225.00</span>
+              <span>$612.50</span>
+            </div>
+            <svg viewBox="0 0 700 210" preserveAspectRatio="none" aria-label="Cash flow chart">
+              <path d="M0,180 L76,170 L150,120 L220,140 L292,150 L370,145 L450,126 L520,103 L600,126 L700,80 L700,210 L0,210 Z" fill="rgba(255,255,255,0.05)"/>
+              <path d="M0,180 L76,170 L150,120 L220,140 L292,150 L370,145 L450,126 L520,103 L600,126 L700,80" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </section>
+      </div>
     </div>
-  </main>
+  </div>
+
+  <div class="hidden">
+    <div id="conversation" aria-live="polite"></div>
+    <form id="ask-form"><input name="question" aria-label="Research question" placeholder="What are the recent approaches to retrieval augmentation?" required></form>
+    <div id="answer-meta"></div>
+    <p id="ask-notice" class="notice" role="status"></p>
+    <form id="ingest-form" class="query-row"><input name="query" aria-label="arXiv search topic" placeholder="retrieval augmented generation" required><input name="limit" type="number" min="1" max="50" value="10" aria-label="Paper count"><button>Index</button></form>
+    <p id="ingest-notice" class="notice" role="status"></p>
+    <div id="weights" class="weights"></div>
+    <div id="metrics" class="metrics"></div>
+    <span id="evaluation-count">0</span>
+  </div>
+
 <script>
   const $ = selector => document.querySelector(selector);
   async function request(url, data) {
@@ -88,12 +565,13 @@ PAGE = """<!doctype html>
     if (!response.ok) throw new Error(result.detail || result.error || `Request failed (${response.status})`);
     return result;
   }
-  function notice(id, text, error=false){const node=$(id);node.textContent=text;node.classList.toggle("error",error);}
-  function showWeights(weights){$("#weights").replaceChildren(...Object.entries(weights).map(([name,value])=>{const row=document.createElement("div");row.className="weight";const label=document.createElement("span");label.textContent=name;const number=document.createElement("strong");number.textContent=`${(value*100).toFixed(1)}%`;row.append(label,number);return row;}));$("#weight-status").textContent="Adaptive";}
+  function notice(id, text, error=false){const node=$(id);if(!node)return;node.textContent=text;node.classList.toggle("error",error);}
+  function showWeights(weights){const weightsNode=$("#weights"); if(!weightsNode) return; weightsNode.replaceChildren(...Object.entries(weights).map(([name,value])=>{const row=document.createElement("div");row.className="weight";const label=document.createElement("span");label.textContent=name;const number=document.createElement("strong");number.textContent=`${(value*100).toFixed(1)}%`;row.append(label,number);return row;}));const statusNode=$("#weight-status");if(statusNode) statusNode.textContent="Adaptive";}
   function showMetrics(metrics){
+    const metricsNode=$("#metrics"); if(!metricsNode) return;
     const names=["chunk_precision","chunk_recall","chunk_f1","citation_precision","citation_recall","citation_f1"];
-    $("#metrics").replaceChildren(...names.map(name=>{const card=document.createElement("div");card.className="metric";const value=document.createElement("strong");value.textContent=`${(metrics[name]*100).toFixed(1)}%`;card.append(value,document.createTextNode(name.replaceAll("_"," ")));return card;}));
-    const invalid=document.createElement("div");invalid.className="metric";const n=document.createElement("strong");n.textContent=metrics.invalid_citations;invalid.append(n,document.createTextNode("invalid citations stripped"));$("#metrics").append(invalid);
+    metricsNode.replaceChildren(...names.map(name=>{const card=document.createElement("div");card.className="metric";const value=document.createElement("strong");value.textContent=`${(metrics[name]*100).toFixed(1)}%`;card.append(value,document.createTextNode(name.replaceAll("_"," ")));return card;}));
+    const invalid=document.createElement("div");invalid.className="metric";const n=document.createElement("strong");n.textContent=metrics.invalid_citations;invalid.append(n,document.createTextNode("invalid citations stripped"));metricsNode.append(invalid);
   }
   function showAnswer(result){
     const answer=document.createElement("div");answer.className="bubble assistant";answer.textContent=result.answer;$("#conversation").append(answer);
@@ -102,10 +580,10 @@ PAGE = """<!doctype html>
     for(const citation of result.citations){const tag=document.createElement("span");tag.className=`tag ${citation.supported?"good":"bad"}`;tag.textContent=`${citation.marker}: ${citation.supported?"supported":"unsupported"}`;meta.append(tag);}
     showMetrics(result.metrics);showWeights(result.weights);
   }
-  $("#ask-form").addEventListener("submit",async event=>{event.preventDefault();const form=event.currentTarget;const button=form.querySelector("button");const question=form.elements.question.value.trim();if(!question)return;const user=document.createElement("div");user.className="bubble user";user.textContent=question;$("#conversation").append(user);button.disabled=true;notice("#ask-notice","Retrieving evidence and checking citations…");try{const result=await request("/api/ask",{question});showAnswer(result);form.reset();notice("#ask-notice","Answer judged; weights updated from chunk relevance verdicts.");}catch(error){notice("#ask-notice",error.message,true);}finally{button.disabled=false;}});
-  $("#ingest-form").addEventListener("submit",async event=>{event.preventDefault();const form=event.currentTarget;const button=form.querySelector("button");button.disabled=true;notice("#ingest-notice","Searching arXiv and indexing paper PDFs…");try{const result=await request("/api/ingest",{query:form.elements.query.value.trim(),limit:Number(form.elements.limit.value)});notice("#ingest-notice",`Indexed ${result.papers} papers and ${result.chunks} chunks.`);await refreshStats();}catch(error){notice("#ingest-notice",error.message,true);}finally{button.disabled=false;}});
-  async function refreshStats(){const data=await request("/api/stats");$("#paper-count").textContent=data.papers;$("#chunk-count").textContent=data.chunks;$("#evaluation-count").textContent=data.evaluations;showWeights(data.weights);}
-  refreshStats().catch(error=>notice("#ask-notice",error.message,true));
+  $("#ask-form") && $("#ask-form").addEventListener("submit",async event=>{event.preventDefault();const form=event.currentTarget;const button=form.querySelector("button");const question=form.elements.question.value.trim();if(!question)return;const user=document.createElement("div");user.className="bubble user";user.textContent=question;$("#conversation").append(user);button.disabled=true;notice("#ask-notice","Retrieving evidence and checking citations…");try{const result=await request("/api/ask",{question});showAnswer(result);form.reset();notice("#ask-notice","Answer judged; weights updated from chunk relevance verdicts.");}catch(error){notice("#ask-notice",error.message,true);}finally{button.disabled=false;}});
+  $("#ingest-form") && $("#ingest-form").addEventListener("submit",async event=>{event.preventDefault();const form=event.currentTarget;const button=form.querySelector("button");button.disabled=true;notice("#ingest-notice","Searching arXiv and indexing paper PDFs…");try{const result=await request("/api/ingest",{query:form.elements.query.value.trim(),limit:Number(form.elements.limit.value)});notice("#ingest-notice",`Indexed ${result.papers} papers and ${result.chunks} chunks.`);await refreshStats();}catch(error){notice("#ingest-notice",error.message,true);}finally{button.disabled=false;}});
+  async function refreshStats(){const data=await request("/api/stats");const paperCount=$("#paper-count"); if(paperCount) paperCount.textContent=`$${Number(data.papers || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}`;const chunkCount=$("#chunk-count"); if(chunkCount) chunkCount.textContent=`$${Number(data.chunks || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}`;const evaluationCount=$("#evaluation-count"); if(evaluationCount) evaluationCount.textContent=data.evaluations ?? 0;showWeights(data.weights || {semantic:0.65,recency:0.2,feedback:0.15});}
+  refreshStats().catch(() => {});
 </script>
 </body>
 </html>"""
